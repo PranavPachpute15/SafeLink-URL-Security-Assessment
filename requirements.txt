@@ -1,0 +1,26 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# SafeLink Requirements
+# Install with: pip install -r requirements.txt
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Core Framework
+streamlit>=1.32.0
+
+# Machine Learning
+scikit-learn>=1.4.0
+pandas>=2.2.0
+numpy>=1.26.0
+
+# Database
+mysql-connector-python>=8.3.0
+
+# Security & Hashing
+bcrypt>=4.1.2
+
+# URL Analysis
+requests>=2.31.0
+tldextract>=5.1.1
+python-whois>=0.9.3
+
+# Standard Library (included with Python - listed for documentation)
+# ssl, socket, re, ipaddress, urllib.parse, hashlib, json, datetime, pickle
