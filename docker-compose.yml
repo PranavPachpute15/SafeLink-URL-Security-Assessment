@@ -1,0 +1,49 @@
+# SafeLink Docker Compose
+# Run with: docker-compose up -d
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: safelink_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-pranav@/2005}
+      MYSQL_DATABASE: ${DB_NAME:-safelink_db}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - safelink_network
+
+  # SafeLink Streamlit App
+  app:
+    build: .
+    container_name: safelink_app
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-pranav@/2005}
+      DB_NAME: ${DB_NAME:-safelink_db}
+      DB_PORT: 3306
+    ports:
+      - "8501:8501"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - safelink_network
+
+volumes:
+  mysql_data:
+
+networks:
+  safelink_network:
+    driver: bridge

@@ -28,12 +28,12 @@ User Input (URL)
               │                        │
               ▼                        ▼
    ┌──────────────────┐    ┌──────────────────────┐
-   │  RULE-BASED      │    │  ISOLATION FOREST     │
-   │  HEURISTIC       │    │  ANOMALY DETECTION    │
-   │  ENGINE          │    │  (sklearn)            │
-   │                  │    │                       │
-   │  Rule Score      │    │  ML Anomaly Score     │
-   │  (0–100)         │    │  (0–100)              │
+   │  RULE-BASED      │    │  ISOLATION FOREST   │
+   │  HEURISTIC       │    │  ANOMALY DETECTION │
+   │  ENGINE          │    │  (sklearn)          │
+   │                  │    │                     │
+   │  Rule Score      │    │  ML Anomaly Score   │
+   │  (0–100)         │    │  (0–100)            │
    └────────┬─────────┘    └──────────┬────────────┘
             │                         │
             └──────────┬──────────────┘
@@ -42,11 +42,11 @@ User Input (URL)
          ┌─────────────────────────┐
          │   HYBRID RISK SCORE     │
          │                         │
-         │  Score = 0.6×Rule       │
-         │        + 0.4×ML         │
+         │  Score = 0.6×Rule      │
+         │        + 0.4×ML        │
          │                         │
-         │  🟢 Safe (0–39)         │
-         │  🟡 Suspicious (40–69)  │
+         │  🟢 Safe (0–39)        │
+         │  🟡 Suspicious (40–69) │
          │  🔴 High Risk (70–100)  │
          └────────────┬────────────┘
                       │
@@ -54,9 +54,9 @@ User Input (URL)
           │                       │
           ▼                       ▼
   ┌───────────────┐     ┌─────────────────────┐
-  │  EDUCATIONAL  │     │  MySQL DATABASE      │
-  │  EXPLANATION  │     │  (scan_history)      │
-  │  ENGINE       │     │  Personalized        │
+  │  EDUCATIONAL  │     │  MySQL DATABASE     │
+  │  EXPLANATION  │     │  (scan_history)     │
+  │  ENGINE       │     │  Personalized       │
   └───────────────┘     │  Historical Tracking │
                         └─────────────────────┘
 ```
@@ -74,91 +74,151 @@ safelink/
 ├── database.py         ← MySQL operations (users, scan history)
 ├── requirements.txt    ← Python dependencies
 ├── setup.sql           ← Database schema (auto-created on first run)
+├── Dockerfile          ← Docker container configuration
+├── docker-compose.yml  ← Docker Compose for local development
+├── Procfile            ← For cloud platform deployment
+├── .env.example        ← Environment variables template
 └── README.md           ← This file
 ```
 
 ---
 
-## ⚙️ Setup Instructions
+## 🚀 Deployment Options
+
+### Option 1: Docker Deployment (Recommended)
+
+The easiest way to deploy SafeLink with all dependencies:
+
+```
+bash
+# 1. Clone/download the project
+cd safelink
+
+# 2. Start with Docker Compose (includes MySQL)
+docker-compose up -d
+
+# 3. Access the app at http://localhost:8501
+```
+
+This will start:
+- MySQL database on port 3306
+- SafeLink Streamlit app on port 8501
+
+### Option 2: Cloud Deployment (Render/Railway/Heroku)
+
+#### Step 1: Prepare Your Database
+- Use a managed MySQL service (ClearDB, PlanetScale, or Railway MySQL)
+- Or deploy MySQL separately using docker-compose
+
+#### Step 2: Deploy to Render
+1. Create a Render account at https://render.com
+2. Connect your GitHub repository
+3. Create a new Web Service with:
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `python -m streamlit run app.py --server.port=$PORT --server.address=0.0.0.0`
+4. Add environment variables:
+   - `DB_HOST` - Your MySQL host
+   - `DB_USER` - Your MySQL username
+   - `DB_PASSWORD` - Your MySQL password
+   - `DB_NAME` - safelink_db
+
+#### Step 3: Deploy to Railway
+1. Create a Railway account at https://railway.app
+2. Add MySQL plugin
+3. Deploy from GitHub with the same build/start commands
+4. Variables are automatically configured
+
+#### Step 4: Deploy to Streamlit Cloud
+1. Create account at https://streamlit.io/cloud
+2. Connect your GitHub repository
+3. Note: Streamlit Cloud has limitations - you'll need an external MySQL database
+4. Add secrets in Streamlit Cloud settings
+
+### Option 3: Manual VPS Deployment
+
+For deployment on a VPS (DigitalOcean, AWS, etc.):
+
+```
+bash
+# 1. Install dependencies
+apt update && apt install -y python3 python3-pip docker.io docker-compose
+
+# 2. Clone project
+git clone <your-repo> && cd safelink
+
+# 3. Configure environment
+cp .env.example .env
+nano .env  # Update DB credentials
+
+# 4. Start with Docker
+docker-compose up -d
+
+# 5. Set up Nginx reverse proxy (optional)
+```
+
+---
+
+## ⚙️ Setup Instructions (Local Development)
 
 ### Prerequisites
 - Python 3.10+
 - MySQL 8.0+ (running locally or remote)
-- Google Colab or local machine
+- Docker & Docker Compose (optional)
 
 ---
 
-### Step 1 — Clone / Download
+### Quick Start with Docker
 
-```bash
-# Download all files to a folder named 'safelink'
-mkdir safelink && cd safelink
+```
+bash
+# Start everything with one command
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
----
+### Manual Setup (Without Docker)
 
-### Step 2 — Install Dependencies
+#### Step 1 — Install Dependencies
 
-```bash
+```
+bash
 pip install -r requirements.txt
 ```
 
-**For Google Colab:**
-```python
-!pip install streamlit scikit-learn pandas numpy mysql-connector-python \
-             bcrypt requests tldextract python-whois pyngrok
+#### Step 2 — Configure MySQL
+
+Open `database.py` and update the `DB_CONFIG`, or use environment variables:
+
 ```
+bash
+# Set environment variables (Linux/Mac)
+export DB_HOST=localhost
+export DB_USER=root
+export DB_PASSWORD=your_password
+export DB_NAME=safelink_db
 
----
-
-### Step 3 — Configure MySQL
-
-Open `database.py` and update the `DB_CONFIG`:
-
-```python
-DB_CONFIG = {
-    "host":     "localhost",      # Your MySQL host
-    "user":     "root",           # Your MySQL username
-    "password": "your_password",  # Your MySQL password
-    "database": "safelink_db",
-    "port":     3306,
-}
+# Or create a .env file
+cp .env.example .env
+# Then edit .env with your values
 ```
 
 The database and tables are **auto-created** on first run. You can also run `setup.sql` manually:
 
-```sql
+```
+sql
 mysql -u root -p < setup.sql
 ```
 
----
+#### Step 3 — Run the Application
 
-### Step 4 — Run the Application
-
-**Local:**
-```bash
-streamlit run app.py
 ```
-
-**Google Colab:**
-```python
-# Install pyngrok for tunneling
-!pip install pyngrok
-
-from pyngrok import ngrok
-import subprocess, time, threading
-
-def run_streamlit():
-    subprocess.run(["streamlit", "run", "app.py",
-                    "--server.port=8501",
-                    "--server.headless=true"])
-
-thread = threading.Thread(target=run_streamlit, daemon=True)
-thread.start()
-time.sleep(3)
-
-tunnel = ngrok.connect(8501)
-print(f"SafeLink URL: {tunnel.public_url}")
+bash
+streamlit run app.py
 ```
 
 ---
@@ -229,6 +289,7 @@ print(f"SafeLink URL: {tunnel.public_url}")
 - **DB ownership**: All queries include `user_id` check (no cross-user data leakage)
 - **SQL injection prevention**: Parameterized queries throughout
 - **SSL validation**: Performed independently from HTTP requests
+- **Environment variables**: Database credentials stored in environment variables
 
 ---
 
@@ -243,7 +304,6 @@ print(f"SafeLink URL: {tunnel.public_url}")
 | Email Scanner | Detect phishing links in email bodies |
 | QR Code Scanner | Decode and analyze QR code URLs |
 | Threat Feed | Real-time IOC feeds (MISP, PhishTank) |
-| Cloud Deployment | Docker + AWS/GCP deployment |
 
 ---
 
@@ -277,5 +337,5 @@ print(f"SafeLink URL: {tunnel.public_url}")
 
 ---
 
-*SafeLink v1.0 — Hybrid AI URL Security Assessment Platform*
+*SafeLink v2.0 — Hybrid AI URL Security Assessment Platform*
 *Built with: Streamlit · scikit-learn · MySQL · Python*

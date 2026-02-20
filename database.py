@@ -3,6 +3,7 @@ SafeLink - Database Operations Module
 Handles MySQL connections, user management, and scan history storage.
 """
 
+import os
 import mysql.connector
 from mysql.connector import Error
 import bcrypt
@@ -12,12 +13,13 @@ from contextlib import contextmanager
 
 
 # ─── Database Configuration ───────────────────────────────────────────────────
+# Supports environment variables for cloud deployment
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "pranav@/2005",          # Update with your MySQL password
-    "database": "safelink_db",
-    "port": 3306,
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "user": os.environ.get("DB_USER", "root"),
+    "password": os.environ.get("DB_PASSWORD", "pranav@/2005"),
+    "database": os.environ.get("DB_NAME", "safelink_db"),
+    "port": int(os.environ.get("DB_PORT", 3306)),
     "autocommit": False,
     "connection_timeout": 10,
     "get_warnings": True,
